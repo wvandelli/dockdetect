@@ -69,7 +69,7 @@ def executetargets(dir, event):
     targets = (t for t in targets if os.access(t, os.X_OK))
     for t in targets:
         try:
-            subprocess.check_call(t, event.value)
+            subprocess.check_call([t, "%d" % event.value])
         except subprocess.CalledProcessError, e:
             logging.getLogger().warn("Target %s failed with exit code %d" % (t,e.returncode))
     
