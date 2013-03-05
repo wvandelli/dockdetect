@@ -28,6 +28,9 @@ from collections import namedtuple
 import argparse
 import contextlib
 import ConfigParser
+from glob import iglob
+import subprocess
+import os
 
 class InputEvent(namedtuple('_InputEvent', 'raw seconds nanoseconds type code value')):
     """
@@ -47,18 +50,38 @@ def eventlistener(device):
     Generator providing events from the input device as they became available
     
     """
+
     with open(device,'rb') as dev:
         while True:
             yield InputEvent(dev.read(InputEvent.size))
-            
+
+
+def executetargets(dir, event):
+    """
+    Discovers target scripts and executes them (if they are executable)
+
+    """
+
+    targets = iglob(dir+'/*')
+    targets = (t for t in targets if os.access(t, os.X_OK))
+    for t in targets:
+        try:
+            subprocess.check_call(t, event.value)
+        except subprocess.CalledProcessError, e:
+            print 'Failed'
+    
 
 def main(configuration):
+    """
+    Main iteration loop operating on incoming events
+
+    """
 
     listener = eventlistener(configuration['device'])
     for event in listener:
-        #if event.type == 5 and event.code == 5:
-        #    pass
-        print event.type
+        if event.type == int(configuration['eventtype']) and \
+               event.code == int(configuration['eventcode']):
+            executetargets(configuration['scriptdir'],event)
 
 
 def parseargs():
@@ -109,7 +132,6 @@ if __name__ == '__main__':
     else:
         context = daemon.DaemonContext(
             pidfile=pidlockfile.PIDLockFile(os.path.join(conf['piddir'],me)),
-            #stdout=open('/tmp/test.log','w')
             )
 
     with context:
