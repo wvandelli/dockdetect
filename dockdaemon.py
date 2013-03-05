@@ -102,6 +102,7 @@ def parseargs():
     parser = argparse.ArgumentParser(description='Input event daemon.')
     parser.add_argument('-i','--no-daemon',action='store_true',dest='nodaemon')
     parser.add_argument('-c','--conffile',action='store',required=True)
+    parser.add_argument('-p','--pidfile',action='store',required=True)
     return parser.parse_args()
 
 
@@ -140,7 +141,7 @@ if __name__ == '__main__':
         context = nullcontext()
     else:
         context = daemon.DaemonContext(
-            pidfile=pidlockfile.PIDLockFile(os.path.join(conf['piddir'],me)),
+            pidfile=pidlockfile.PIDLockFile(args.pidfile),
             )
 
     with context:
