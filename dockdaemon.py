@@ -27,6 +27,7 @@ import struct
 from collections import namedtuple
 import argparse
 import contextlib
+import ConfigParser
 
 class InputEvent(namedtuple('_InputEvent', 'raw seconds nanoseconds type code value')):
     """
@@ -51,22 +52,40 @@ def eventlistener(device):
             yield InputEvent(dev.read(InputEvent.size))
             
 
-def main(device):
+def main(configuration):
 
-    listener = eventlistener(device)
+    listener = eventlistener(configuration['device'])
     for event in listener:
         #if event.type == 5 and event.code == 5:
         #    pass
         print event.type
 
+
 def parseargs():
+    """
+    Parse command line arguments
+    
+    """
+
     parser = argparse.ArgumentParser(description='Input event daemon.')
     parser.add_argument('-i','--no-daemon',action='store_true',dest='nodaemon')
-    parser.add_argument('-c','--conf',action='store',required=True)
+    parser.add_argument('-c','--conffile',action='store',required=True)
     return parser.parse_args()
 
-def parseconf():
-    pass
+
+def parseconf(conffile):
+    """
+    Parse configuration file
+    
+    """
+
+    config = ConfigParser.SafeConfigParser()
+
+    with open(conffile, 'rb') as configfile:
+        config.readfp(configfile)
+
+    return dict(config.items('Main'))
+
 
 @contextlib.contextmanager
 def nullcontext():
@@ -81,20 +100,17 @@ if __name__ == '__main__':
 
     args = parseargs()
 
-    conf = parseconf(args.conf)
-    
-    piddir = '/run'
-    me = os.path.splitext(sys.argv[0])[0]
-    device = '/dev/input/event4'
+    conf = parseconf(args.conffile)
 
+    me = os.path.splitext(os.path.basename(sys.argv[0])[0])[0]
 
     if args.nodaemon:
         context = nullcontext()
     else:
         context = daemon.DaemonContext(
-            pidfile=pidlockfile.PIDLockFile(os.path.join(piddir,me)),
+            pidfile=pidlockfile.PIDLockFile(os.path.join(conf['piddir'],me)),
             #stdout=open('/tmp/test.log','w')
             )
 
     with context:
-        main(device)
+        main(conf)
