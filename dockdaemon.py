@@ -31,6 +31,9 @@ import ConfigParser
 from glob import iglob
 import subprocess
 import os
+import logging
+import logging.handlers
+
 
 class InputEvent(namedtuple('_InputEvent', 'raw seconds nanoseconds type code value')):
     """
@@ -62,13 +65,13 @@ def executetargets(dir, event):
 
     """
 
-    targets = iglob(dir+'/*')
+    targets = iglob(os.path.join(dir,'*'))
     targets = (t for t in targets if os.access(t, os.X_OK))
     for t in targets:
         try:
             subprocess.check_call(t, event.value)
         except subprocess.CalledProcessError, e:
-            print 'Failed'
+            logging.getLogger().warn("Target %s failed with exit code %d" % (t,e.returncode))
     
 
 def main(configuration):
@@ -76,6 +79,12 @@ def main(configuration):
     Main iteration loop operating on incoming events
 
     """
+
+    handler = logging.handlers.SysLogHandler('/dev/log', \
+                                            facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+    handler.setFormatter(logging.Formatter('%(processName)s[%(process)d]: %(message)s'))
+    logger = logging.getLogger()
+    logger.addHandler(handler) 
 
     listener = eventlistener(configuration['device'])
     for event in listener:
