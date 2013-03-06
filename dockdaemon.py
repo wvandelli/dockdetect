@@ -70,10 +70,13 @@ def executetargets(dir, event):
     targets = sorted(targets)
     for t in targets:
         try:
-            logging.getLogger.info("Executing target: %s" % t)
-            subprocess.check_call([t, "%d" % event.value])
+            logging.getLogger().info("Executing target: %s" % t)
+            _ = subprocess.check_output([t, "%d" % event.value],
+                                        stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError, e:
-            logging.getLogger().warn("Target %s failed with exit code %d" % (t,e.returncode))
+            logger = logging.getLogger()
+            logger.warn("Target '%s' failed with exit code %d" % (t,e.returncode))
+            logger.debug("Target '%s' failed. Output:\n%s" % (t,e.output))
     
 
 def main(configuration):
