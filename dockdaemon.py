@@ -67,6 +67,7 @@ def executetargets(dir, event):
 
     targets = iglob(os.path.join(dir,'*'))
     targets = (t for t in targets if os.access(t, os.X_OK))
+    targets = sorted(targets)
     for t in targets:
         try:
             subprocess.check_call([t, "%d" % event.value])
