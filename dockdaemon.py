@@ -70,6 +70,7 @@ def executetargets(dir, event):
     targets = sorted(targets)
     for t in targets:
         try:
+            logging.getLogger.info("Executing target: %s" % t)
             subprocess.check_call([t, "%d" % event.value])
         except subprocess.CalledProcessError, e:
             logging.getLogger().warn("Target %s failed with exit code %d" % (t,e.returncode))
@@ -83,7 +84,7 @@ def main(configuration):
 
     handler = logging.handlers.SysLogHandler('/dev/log', \
                                             facility=logging.handlers.SysLogHandler.LOG_DAEMON)
-    handler.setFormatter(logging.Formatter('%(processName)s[%(process)d]: %(message)s'))
+    handler.setFormatter(logging.Formatter('dockdetect[%(process)d]: %(message)s'))
     logger = logging.getLogger()
     logger.addHandler(handler) 
 
