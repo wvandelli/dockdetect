@@ -103,7 +103,7 @@ class InputEvent(namedtuple('_InputEvent',
 
     def __new__(cls, raw):
         decoded = struct.unpack(InputEvent._format, raw)
-        return super(InputEvent, ls).__new__(cls, raw, *decoded)
+        return super(InputEvent, cls).__new__(cls, raw, *decoded)
 
 
 def eventlistener(device):
