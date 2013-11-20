@@ -73,7 +73,7 @@ def fetchname(device):
 
 
 def finddevice(name):
-    print name
+
     devices = (dev for dev in iglob('/dev/input/*')
                if not os.path.isdir(dev))
 
