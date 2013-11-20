@@ -57,6 +57,10 @@ def EVIOCGNAME(length):
 
 
 def fetchname(device):
+    """
+    Return the device name for the provided device
+
+    """
     try:
         buffer = "\0"*512
         fd = os.open(device, os.O_RDWR | os.O_NONBLOCK)
@@ -73,7 +77,11 @@ def fetchname(device):
 
 
 def finddevice(name):
+    """
+    Loop over input devices and returns the first device whose name matches
+    the provide name, None otherwise.
 
+    """
     devices = (dev for dev in iglob('/dev/input/*')
                if not os.path.isdir(dev))
 
