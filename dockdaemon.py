@@ -35,26 +35,27 @@ import logging
 import logging.handlers
 
 
-class InputEvent(namedtuple('_InputEvent', 'raw seconds nanoseconds type code value')):
+class InputEvent(namedtuple('_InputEvent',
+                            'raw seconds nanoseconds type code value')):
     """
     Class providing input event decoding
 
     """
     _format = 'llHHi'
     size = struct.calcsize(_format)
-    
+
     def __new__(cls, raw):
         decoded = struct.unpack(InputEvent._format, raw)
-        return super(InputEvent,cls).__new__(cls,raw,*decoded)
-        
+        return super(InputEvent, ls).__new__(cls, raw, *decoded)
+
 
 def eventlistener(device):
     """
     Generator providing events from the input device as they became available
-    
+
     """
 
-    with open(device,'rb') as dev:
+    with open(device, 'rb') as dev:
         while True:
             yield InputEvent(dev.read(InputEvent.size))
 
@@ -65,7 +66,7 @@ def executetargets(dir, event):
 
     """
 
-    targets = iglob(os.path.join(dir,'*'))
+    targets = iglob(os.path.join(dir, '*'))
     targets = (t for t in targets if os.access(t, os.X_OK))
     targets = sorted(targets)
     for t in targets:
@@ -75,9 +76,10 @@ def executetargets(dir, event):
                                         stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError, e:
             logger = logging.getLogger()
-            logger.warn("Target '%s' failed with exit code %d" % (t,e.returncode))
-            logger.debug("Target '%s' failed. Output:\n%s" % (t,e.output))
-    
+            logger.warn("Target '%s' failed with exit code %d"
+                        % (t, e.returncode))
+            logger.debug("Target '%s' failed. Output:\n%s" % (t, e.output))
+
 
 def main(configuration):
     """
@@ -85,38 +87,39 @@ def main(configuration):
 
     """
 
-    handler = logging.handlers.SysLogHandler('/dev/log', \
-                                            facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+    handler = logging.handlers.SysLogHandler('/dev/log',
+                                             facility=logging.handlers.SysLogHandler.LOG_DAEMON)
     handler.setFormatter(logging.Formatter('dockdetect[%(process)d]: %(message)s'))
     logger = logging.getLogger()
-    logger.addHandler(handler) 
+    logger.addHandler(handler)
 
     listener = eventlistener(configuration['device'])
-        logger.warn("started")
+    logger.warn("started")
     for event in listener:
         if event.type == int(configuration['eventtype']) and \
             event.code == int(configuration['eventcode']):
             logger.warn("event detected. Value %d" % event.value)
-            executetargets(configuration['scriptdir'],event)
+            executetargets(configuration['scriptdir'], event)
 
 
 def parseargs():
     """
     Parse command line arguments
-    
+
     """
 
     parser = argparse.ArgumentParser(description='Input event daemon.')
-    parser.add_argument('-i','--no-daemon',action='store_true',dest='nodaemon')
-    parser.add_argument('-c','--conffile',action='store',required=True)
-    parser.add_argument('-p','--pidfile',action='store',required=True)
+    parser.add_argument('-i', '--no-daemon',
+                        action='store_true', dest='nodaemon')
+    parser.add_argument('-c', '--conffile', action='store', required=True)
+    parser.add_argument('-p', '--pidfile', action='store', required=True)
     return parser.parse_args()
 
 
 def parseconf(conffile):
     """
     Parse configuration file
-    
+
     """
 
     config = ConfigParser.SafeConfigParser()
