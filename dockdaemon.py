@@ -31,8 +31,57 @@ import ConfigParser
 from glob import iglob
 import subprocess
 import os
+import fcntl
 import logging
 import logging.handlers
+
+
+IOC_NRBITS = 8L
+IOC_TYPEBITS = 8L
+IOC_SIZEBITS = 14L
+IOC_DIRBITS = 2L
+
+IOC_NRSHIFT = 0L
+IOC_TYPESHIFT = IOC_NRSHIFT+IOC_NRBITS
+IOC_SIZESHIFT = IOC_TYPESHIFT+IOC_TYPEBITS
+IOC_DIRSHIFT = IOC_SIZESHIFT+IOC_SIZEBITS
+
+IOC_READ = 2L
+
+
+def EVIOCGNAME(length):
+    return (IOC_READ << IOC_DIRSHIFT) \
+        | (length << IOC_SIZESHIFT) \
+        | (0x45 << IOC_TYPESHIFT) \
+        | (0x06 << IOC_NRSHIFT)
+
+
+def fetchname(device):
+    try:
+        buffer = "\0"*512
+        fd = os.open(device, os.O_RDWR | os.O_NONBLOCK)
+        name = fcntl.ioctl(fd, EVIOCGNAME(256), buffer)
+        name = name[:name.find("\0")]
+    except (IOError, OSError), err:
+        logging.getLogger().error("ioctl(EVIOCGNAME) for '%s' failed: %s"
+                                  % (device, str(err)))
+        name = None
+    finally:
+        os.close(fd)
+
+    return name
+
+
+def finddevice(name):
+    print name
+    devices = (dev for dev in iglob('/dev/input/*')
+               if not os.path.isdir(dev))
+
+    for dev in devices:
+        if fetchname(dev) == name:
+            return dev
+
+    return None
 
 
 class InputEvent(namedtuple('_InputEvent',
@@ -93,7 +142,12 @@ def main(configuration):
     logger = logging.getLogger()
     logger.addHandler(handler)
 
-    listener = eventlistener(configuration['device'])
+    try:
+        device = configuration['device']
+    except KeyError:
+        device = finddevice(configuration['devicename'])
+
+    listener = eventlistener(device)
     logger.warn("started")
     for event in listener:
         if event.type == int(configuration['eventtype']) and \
