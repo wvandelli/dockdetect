@@ -92,9 +92,11 @@ def main(configuration):
     logger.addHandler(handler) 
 
     listener = eventlistener(configuration['device'])
+        logger.warn("started")
     for event in listener:
         if event.type == int(configuration['eventtype']) and \
-               event.code == int(configuration['eventcode']):
+            event.code == int(configuration['eventcode']):
+            logger.warn("event detected. Value %d" % event.value)
             executetargets(configuration['scriptdir'],event)
 
 
