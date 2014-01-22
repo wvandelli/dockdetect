@@ -33,7 +33,7 @@ import subprocess
 import os
 import fcntl
 import logging
-import logging.handlers
+import logging.handlers import SysLogHandler
 
 
 IOC_NRBITS = 8L
@@ -144,9 +144,11 @@ def main(configuration):
 
     """
 
-    handler = logging.handlers.SysLogHandler('/dev/log',
-                                             facility=logging.handlers.SysLogHandler.LOG_DAEMON)
-    handler.setFormatter(logging.Formatter('dockdetect[%(process)d]: %(message)s'))
+    handler = SysLogHandler('/dev/log', facility=SysLogHandler.LOG_DAEMON)
+
+    logformat = 'dockdetect[%(process)d]: %(message)s'
+    handler.setFormatter(logging.Formatter(logformat))
+
     logger = logging.getLogger()
     logger.addHandler(handler)
 
@@ -159,7 +161,7 @@ def main(configuration):
     logger.warn("started")
     for event in listener:
         if event.type == int(configuration['eventtype']) and \
-            event.code == int(configuration['eventcode']):
+           event.code == int(configuration['eventcode']):
             logger.warn("event detected. Value %d" % event.value)
             executetargets(configuration['scriptdir'], event)
 
