@@ -66,8 +66,9 @@ def fetchname(device):
         fd = os.open(device, os.O_RDWR | os.O_NONBLOCK)
         name = fcntl.ioctl(fd, EVIOCGNAME(256), buffer)
         name = name[:name.find("\0")]
-    except (IOError, OSError), err:
-        logging.getLogger().error("ioctl(EVIOCGNAME) for '{}' failed: {}".format(device, str(err)))
+    except (IOError, OSError) as err:
+        msg = "ioctl(EVIOCGNAME) for '{}' failed: {}".format(device, str(err))
+        logging.getLogger().error(msg)
         name = None
     finally:
         os.close(fd)
@@ -130,9 +131,11 @@ def executetargets(dir, event):
             logging.getLogger().info("Executing target: {}".format(t))
             _ = subprocess.check_output([t, "{}".format(event.value)],
                                         stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
             logger = logging.getLogger()
-            logger.warn("Target '{}' failed with exit code {}".format(t, e.returncode))
+            msg = "Target '{}' failed with exit code {}"
+            msg.format(t, e.returncode)
+            logger.warn(msg)
             logger.debug("Target '{}' failed. Output:\n{}".format(t, e.output))
 
 
