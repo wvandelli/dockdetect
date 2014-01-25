@@ -67,8 +67,7 @@ def fetchname(device):
         name = fcntl.ioctl(fd, EVIOCGNAME(256), buffer)
         name = name[:name.find("\0")]
     except (IOError, OSError), err:
-        logging.getLogger().error("ioctl(EVIOCGNAME) for '%s' failed: %s"
-                                  % (device, str(err)))
+        logging.getLogger().error("ioctl(EVIOCGNAME) for '{}' failed: {}".format(device, str(err)))
         name = None
     finally:
         os.close(fd)
@@ -128,14 +127,13 @@ def executetargets(dir, event):
     targets = sorted(targets)
     for t in targets:
         try:
-            logging.getLogger().info("Executing target: %s" % t)
-            _ = subprocess.check_output([t, "%d" % event.value],
+            logging.getLogger().info("Executing target: {}".format(t))
+            _ = subprocess.check_output([t, "{}".format(event.value)],
                                         stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError, e:
             logger = logging.getLogger()
-            logger.warn("Target '%s' failed with exit code %d"
-                        % (t, e.returncode))
-            logger.debug("Target '%s' failed. Output:\n%s" % (t, e.output))
+            logger.warn("Target '{}' failed with exit code {}".format(t, e.returncode))
+            logger.debug("Target '{}' failed. Output:\n{}".format(t, e.output))
 
 
 def main(configuration):
@@ -162,7 +160,7 @@ def main(configuration):
     for event in listener:
         if event.type == int(configuration['eventtype']) and \
            event.code == int(configuration['eventcode']):
-            logger.warn("event detected. Value %d" % event.value)
+            logger.warn("event detected. Value {}".format(event.value))
             executetargets(configuration['scriptdir'], event)
 
 
