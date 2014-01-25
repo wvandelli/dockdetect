@@ -33,7 +33,7 @@ import subprocess
 import os
 import fcntl
 import logging
-import logging.handlers import SysLogHandler
+from logging.handlers import SysLogHandler
 
 
 IOC_NRBITS = 8L
