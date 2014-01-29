@@ -27,7 +27,6 @@ import struct
 from collections import namedtuple
 import argparse
 import contextlib
-import ConfigParser
 from glob import iglob
 import subprocess
 import os
@@ -35,18 +34,28 @@ import fcntl
 import logging
 from logging.handlers import SysLogHandler
 
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
-IOC_NRBITS = 8L
-IOC_TYPEBITS = 8L
-IOC_SIZEBITS = 14L
-IOC_DIRBITS = 2L
+try:
+    long = long
+except NameError:
+    long = int
 
-IOC_NRSHIFT = 0L
+
+IOC_NRBITS = long(8)
+IOC_TYPEBITS = long(8)
+IOC_SIZEBITS = long(14)
+IOC_DIRBITS = long(2)
+IOC_NRSHIFT = long(0)
+
+IOC_READ = long(2)
+
 IOC_TYPESHIFT = IOC_NRSHIFT+IOC_NRBITS
 IOC_SIZESHIFT = IOC_TYPESHIFT+IOC_TYPEBITS
 IOC_DIRSHIFT = IOC_SIZESHIFT+IOC_SIZEBITS
-
-IOC_READ = 2L
 
 
 def EVIOCGNAME(length):
@@ -187,7 +196,7 @@ def parseconf(conffile):
 
     """
 
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
 
     with open(conffile, 'rb') as configfile:
         config.readfp(configfile)
